@@ -1,5 +1,6 @@
 package jp.techacademy.takashi.nakamura.qa_app;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -124,7 +125,7 @@ public class QuestionSendActivity extends AppCompatActivity
         if (v == mImageView) {
             // パーミッションの状態を確認する
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (checkSelfPermission(android.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                if (checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                     // 許可されている
                     showChooser();
                 } else {
