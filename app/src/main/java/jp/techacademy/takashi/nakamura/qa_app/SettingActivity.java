@@ -21,8 +21,8 @@ import java.util.Map;
 
 public class SettingActivity extends AppCompatActivity {
 
-    DatabaseReference mDataBaseReference;
-    private EditText mNameText;
+    DatabaseReference mDataBaseReference;  // Firebaseへの参照
+    private EditText mNameText;  // 表示名変更のためのEditText
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,15 +30,19 @@ public class SettingActivity extends AppCompatActivity {
         setContentView(R.layout.activity_setting);
 
         // Preferenceから表示名を取り出してEditTextに反映させる
-        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
-        String name = sharedPreferences.getString(Const.NameKEY, "");
+        SharedPreferences sp = PreferenceManager.getDefaultSharedPreferences(this);
+        String name = sp.getString(Const.NameKEY, "");
         mNameText = (EditText) findViewById(R.id.nameText);
         mNameText.setText(name);
 
+        // Firebaseへの参照の初期設定
         mDataBaseReference = FirebaseDatabase.getInstance().getReference();
 
-        // UIの初期設定
         setTitle("設定");
+
+        // UIの初期設定
+
+        // ユーザーの表示名変更ボタンを押したときの処理
         Button changeButton = (Button) findViewById(R.id.changeButton);
         changeButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -51,16 +55,18 @@ public class SettingActivity extends AppCompatActivity {
                 FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
                 if (user == null) {
-                    // ログインしていない場合は何もしない
+                    // ログインしていない場合は警告を出して入力待ち(このActivityにとどまる)
                     Snackbar.make(v, "ログインしていません", Snackbar.LENGTH_LONG).show();
                     return;
                 }
 
                 // 変更した表示名をFirebaseに保存する
-                String name = mNameText.getText().toString();
-                DatabaseReference userRef = mDataBaseReference.child(Const.UserPATH).child(user.getUid());
-                Map<String, String> data = new HashMap<String, String>();
-                data.put("name", name);
+                String name = mNameText.getText().toString();  // EditTextから表示名を取得
+                // databaseRoot -> users -> user.getUid() でユーザーのユニークIDへの参照を取得
+                DatabaseReference userRef = mDataBaseReference.child(Const.UsersPATH).child(user.getUid());
+                Map<String, String> data = new HashMap<String, String>();  // HashMapの宣言
+                data.put("name", name);  // 表示名をHashMapに追加
+                // HashMapを取得したユーザーのユニークIDへの参照を使ってFirebaseに登録
                 userRef.setValue(data);
 
                 // 変更した表示名をPreferenceに保存する
@@ -73,11 +79,14 @@ public class SettingActivity extends AppCompatActivity {
             }
         });
 
+        // ログアウトボタンを押したときの処理
         Button logoutButton = (Button) findViewById(R.id.logoutButton);
         logoutButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Firebaseからログアウトする
                 FirebaseAuth.getInstance().signOut();
+                // 表示名EditTextを空にする
                 mNameText.setText("");
                 Snackbar.make(v, "ログアウトしました", Snackbar.LENGTH_LONG).show();
             }
